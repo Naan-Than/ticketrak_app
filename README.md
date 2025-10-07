@@ -56,4 +56,8 @@ React Navigation – Navigation between screens
 
 React Native Paper / MUI – UI components (if used)
 
+## admin credentials
+email    :  admin@gmail.com
+password :  Admin@123
+
 
