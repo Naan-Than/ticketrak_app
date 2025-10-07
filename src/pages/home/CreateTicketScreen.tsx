@@ -290,7 +290,7 @@ const CreateTicketScreen = ({ navigation }: any) => {
                         <Text style={styles.offlineBannerText}>You are offline</Text>
                     </View>
                 )}
-                {isOnline && useSelector((state: any) => state.ticket.offlineTickets.length) > 0 && (
+                {/* {isOnline && useSelector((state: any) => state.ticket.offlineTickets.length) > 0 && (
                     <View style={styles.syncBanner}>
                         <Icon name="sync" size={20} color="#2196F3" style={{ marginRight: 8 }} />
                         <Text style={styles.syncBannerText}>
@@ -300,10 +300,8 @@ const CreateTicketScreen = ({ navigation }: any) => {
                             <Text style={styles.syncButtonText}>Sync Now</Text>
                         </TouchableOpacity>
                     </View>
-                )}
-
+                )} */}
                 <View style={styles.formContainer}>
-                    {/* Title */}
                     <View style={styles.inputWrapper}>
                         <Text style={styles.label}>
                             Title <Text style={styles.required}>*</Text>
