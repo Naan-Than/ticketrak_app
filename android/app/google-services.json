@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "119099967949",
+    "project_id": "ticketrak-d9c95",
+    "storage_bucket": "ticketrak-d9c95.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:119099967949:android:d680685df72ce70c8edc84",
+        "android_client_info": {
+          "package_name": "com.ticketrak"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYWpFuo3N9Q3j8_kEH76_b1acHTPpq8BY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
