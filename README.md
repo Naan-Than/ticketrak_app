@@ -1,97 +1,59 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# TicketTrak – Ticket Management App
 
-# Getting Started
+TicketTrak is a React Native mobile application for managing customer support tickets. It allows users to create, view, and update tickets, track ticket status and priority, and manage activity history. The app uses Redux for state management and Firebase (Auth, Firestore, Storage) for backend functionality.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## 📸 Screenshots
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+| Login | Ticket List |
+|-------|-------------|
+|![login](https://github.com/user-attachments/assets/91e78f11-55b1-4d50-887a-61e803d65750)| ![Ticket List](https://github.com/user-attachments/assets/f1fff733-4d3c-4872-b1d6-669e3bb27459)
+|
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+| Create Ticket | Add Agent | Profile |
+|---------------|-----------|---------|
+| ![Create](https://github.com/user-attachments/assets/889998c0-626b-4b81-8340-0661277bdccf)| ![Add Agent](https://github.com/user-attachments/assets/1781fc45-522b-4401-b226-018f9b2d2d2f)| ![Profile](https://github.com/user-attachments/assets/ea1a041e-e8bb-4d59-b522-47800ad3f0b7)|
 
-```sh
-# Using npm
-npm start
 
-# OR using Yarn
-yarn start
-```
+---
 
-## Step 2: Build and run your app
+## ✨ Features
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+📌 Create, view, and manage tickets
 
-### Android
+🔄 Ticket status & priority tracking
 
-```sh
-# Using npm
-npm run android
+🗂 Activity history for each ticket
 
-# OR using Yarn
-yarn android
-```
+👥 User authentication with Firebase Auth
 
-### iOS
+☁️ Realtime data syncing with Firestore
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+📎 File attachments (images & PDFs)
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+🔍 Search and filter tickets
 
-```sh
-bundle install
-```
+🔔 Notifications for ticket updates
 
-Then, and every time you update your native dependencies, run:
+💡 Clean and minimal UI
 
-```sh
-bundle exec pod install
-```
+---
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+## 🛠️ Tech Stack
 
-```sh
-# Using npm
-npm run ios
+React Native – Mobile app framework
 
-# OR using Yarn
-yarn ios
-```
+Redux Toolkit – State management
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Firebase Auth – User authentication
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+Firestore – Realtime database
 
-## Step 3: Modify your app
+Firebase Storage – File attachments
 
-Now that you have successfully run the app, let's make changes!
+React Navigation – Navigation between screens
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+React Native Paper / MUI – UI components (if used)
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
