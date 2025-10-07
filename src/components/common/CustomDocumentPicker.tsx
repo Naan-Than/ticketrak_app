@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, TouchableOpacity, Image, Text, StyleSheet, ScrollView, Platform, Alert } from 'react-native';
+import { View, TouchableOpacity, Image, Text, StyleSheet, ScrollView, Platform, Alert, PermissionsAndroid } from 'react-native';
 import { pick } from '@react-native-documents/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -8,56 +8,71 @@ import { ToastMessage } from '../../constants/TostMessages';
 
 interface CustomDocumentPickerProps {
     onChange?: (files: any[]) => void;
-    clear?: boolean;  
+    clear?: boolean;
 }
 
-const CustomDocumentPicker: React.FC<CustomDocumentPickerProps> = ({ onChange ,clear }) => {
+const CustomDocumentPicker: React.FC<CustomDocumentPickerProps> = ({ onChange, clear }) => {
     const [selectedDocs, setSelectedDocs] = useState<any[]>([]);
 
-      useEffect(() => {
+    useEffect(() => {
         if (clear) {
             setSelectedDocs([]);
             onChange?.([]);
         }
     }, [clear]);
 
-    const requestStoragePermission = async (): Promise<boolean> => {
-        let permissionType;
-
-        if (Platform.OS === 'android') {
-            permissionType = PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
-        } else if (Platform.OS === 'ios') {
-            return true;
+    const getStoragePermissionType = () => {
+        if (Platform.OS === 'ios') {
+            return PERMISSIONS.IOS.PHOTO_LIBRARY;
         } else {
-            return true;
-        }
-
-        try {
-            const status = await check(permissionType);
-            if (status === RESULTS.GRANTED) {
-                return true;
-            }
-
-            if (status === RESULTS.DENIED || status === RESULTS.LIMITED) {
-                const result = await request(permissionType);
-                return result === RESULTS.GRANTED || result === RESULTS.LIMITED;
-            }
-
-            if (status === RESULTS.BLOCKED) {
-                Alert.alert(
-                    'Permission Required',
-                    'Please grant storage permission in your device settings to select documents.',
-                    [{ text: 'OK' }]
-                );
-                return false;
-            }
-            return false;
-        } catch (error) {
-            console.error('Permission check failed:', error);
-            return false;
+            const androidVersion = Platform.Version;
+            return androidVersion >= 33
+                ? PERMISSIONS.ANDROID.READ_MEDIA_IMAGES
+                : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
         }
     };
+    const requestStoragePermission = async (): Promise<boolean> => {
+        const permission = getStoragePermissionType();
 
+        try {
+            if (Platform.OS === 'android') {
+                const status = await PermissionsAndroid.check(permission as any);
+                if (status) return true;
+
+                const granted = await PermissionsAndroid.request(permission as any, {
+                    title: 'Storage Permission',
+                    message: 'This app needs access to your storage to upload files',
+                    buttonNeutral: 'Ask Me Later',
+                    buttonNegative: 'Cancel',
+                    buttonPositive: 'OK',
+                });
+                return granted === PermissionsAndroid.RESULTS.GRANTED;
+            } else {
+                // iOS
+                const status = await check(permission);
+                if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) return true;
+
+                if (status === RESULTS.DENIED) {
+                    const result = await request(permission);
+                    return result === RESULTS.GRANTED || result === RESULTS.LIMITED;
+                }
+
+                if (status === RESULTS.BLOCKED) {
+                    Alert.alert(
+                        'Permission Required',
+                        'Please grant storage permission in your device settings to select documents.',
+                        [{ text: 'OK' }]
+                    );
+                    return false;
+                }
+
+                return false;
+            }
+        } catch (err) {
+            console.error('Permission check failed:', err);
+            return false;
+        }
+    }
     const handlePickDocuments = async () => {
         const hasPermission = await requestStoragePermission();
         if (!hasPermission) {
