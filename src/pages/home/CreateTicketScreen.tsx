@@ -20,6 +20,7 @@ import { firestore } from '../../services/firebase';
 import CustomAppBar from '../../components/common/CustomAppBar';
 import { ToastMessage } from '../../constants/TostMessages';
 import { offlineTicketSync } from '../../services/offlineTicketSync';
+import CustomDocumentPicker from '../../components/common/CustomDocumentPicker';
 
 
 interface User {
@@ -43,10 +44,12 @@ const CreateTicketScreen = ({ navigation }: any) => {
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [loadingUsers, setLoadingUsers] = useState(false);
+    const [files, setFiles] = useState<any[]>([]);
+    const [clearDocs, setClearDocs] = useState(false);
+
 
     const dispatch = useDispatch();
     const userData = useSelector((state: any) => state.auth.userData);
-
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
             setIsOnline(state.isConnected ?? false);
@@ -58,6 +61,19 @@ const CreateTicketScreen = ({ navigation }: any) => {
             offlineTicketSync.stop();
         };
     }, []);
+
+    const uploadToCloudinary = async (file: any) => {
+        const data = new FormData();
+        data.append('file', { uri: file.uri, type: file.type, name: file.name });
+        data.append('upload_preset', 'YOUR_UPLOAD_PRESET');
+        const res = await fetch(`https://api.cloudinary.com/v1_1/dd5vkjuor/auto/upload`, {
+            method: 'POST',
+            body: data,
+        });
+
+        const result = await res.json();
+        return result.secure_url; // ✅ public URL
+    };
 
     const handleManualSync = async () => {
         const status = offlineTicketSync.getSyncStatus();
@@ -148,74 +164,117 @@ const CreateTicketScreen = ({ navigation }: any) => {
             setDescriptionError('Description is required');
             return;
         }
-        if (titleError || descriptionError) {
-            return;
-        }
+        if (titleError || descriptionError) return;
 
         const ticketId = generateTicketId();
         const now = new Date().toISOString();
-
-        const ticketData = {
-            id: ticketId,
-            title: title.trim(),
-            description: description.trim(),
-            status: 'open',
-            priority,
-            createdDate: now,
-            updatedDate: now,
-            assignedUser: selectedUser ? {
-                uid: selectedUser.uid,
-                name: selectedUser.name,
-                email: selectedUser.email,
-                phone: selectedUser.mobileNumber,
-            } : {
-                uid: usersList?.[0].uid,
-                name: usersList?.[0].name,
-                email: usersList?.[0].email,
-                phone: usersList?.[0].mobileNumber,
-            },
-            createdBy: {
-                uid: userData?.uid || 'unknown',
-                name: userData?.name || 'Unknown User',
-                email: userData?.email || 'unknown@example.com',
-                phone: userData?.mobileNumber || 'NA',
-
-            },
-            contactInfo: {
-                name: userData?.name || 'Unknown User',
-                email: userData?.email || '',
-                phone: userData?.mobileNumber || '',
-            },
-            conversation: [],
-            isOffline: !isOnline,
-            syncStatus: isOnline ? 'synced' : 'pending',
-        };
-
         setLoading(true);
 
         try {
+            let uploadedFiles: any[] = [];
+
+            if (files && files.length > 0) {
+                const uploadPromises = files.map(async (file) => {
+                    try {
+                        const data = new FormData();
+                        data.append('file', {
+                            uri: file.uri,
+                            type: file.type,
+                            name: file.name,
+                        });
+                        data.append('upload_preset', 'ticket_uploads');
+                        const res = await fetch(
+                            'https://api.cloudinary.com/v1_1/dd5vkjuor/auto/upload',
+                            { method: 'POST', body: data }
+                        );
+                        const result = await res.json();
+
+                        return {
+                            name: file.name,
+                            type: file.type,
+                            url: result.secure_url,
+                        };
+                    } catch (err) {
+                        console.error('File upload failed:', err);
+                        return null;
+                    }
+                });
+                const results = await Promise.all(uploadPromises);
+                console.log('Uploaded files:::::::', results);
+                uploadedFiles = results.filter(Boolean);
+            }
+
+            const ticketData = {
+                id: ticketId,
+                title: title.trim(),
+                description: description.trim(),
+                status: 'open',
+                priority,
+                attachments: uploadedFiles,
+                createdDate: now,
+                updatedDate: now,
+                assignedUser: selectedUser
+                    ? {
+                        uid: selectedUser.uid || 'unknown',
+                        name: selectedUser.name || 'Unknown',
+                        email: selectedUser.email || '',
+                        phone: selectedUser.mobileNumber || '',
+                    }
+                    : usersList?.[0]
+                        ? {
+                            uid: usersList[0].uid || 'unknown',
+                            name: usersList[0].name || 'Unknown',
+                            email: usersList[0].email || '',
+                            phone: usersList[0].mobileNumber || '',
+                        }
+                        : {
+                            uid: null, name: null, email: null, phone: null,
+                        },
+                createdBy: {
+                    uid: userData?.uid || 'unknown',
+                    name: userData?.name || 'Unknown User',
+                    email: userData?.email || 'unknown@example.com',
+                    phone: userData?.mobileNumber || 'NA',
+                },
+                contactInfo: {
+                    name: userData?.name || 'Unknown User',
+                    email: userData?.email || '',
+                    phone: userData?.mobileNumber || '',
+                },
+                conversation: uploadedFiles,
+                isOffline: !isOnline,
+                syncStatus: isOnline ? 'synced' : 'pending',
+            };
+
             if (isOnline) {
                 await firestore().collection('tickets').doc(ticketId).set(ticketData);
                 dispatch(addTicket(ticketData));
                 ToastMessage.Custom('success', 'Ticket Created Successfully.');
             } else {
                 dispatch(addOfflineTicket(ticketData));
-                ToastMessage.Custom('error', 'Offline Mode', 'Ticket saved locally. It will be synced when you are online.')
-
+                ToastMessage.Custom(
+                    'error',
+                    'Offline Mode',
+                    'Ticket saved locally. It will be synced when you are online.'
+                );
             }
-
             setTitle('');
             setDescription('');
             setPriority('medium');
             setAssignedTo('');
             setSelectedUser(null);
+            setFiles([]);
+            setFiles([]);
+            setClearDocs(true);
+            setTimeout(() => setClearDocs(false), 100);
         } catch (error) {
             console.error('Create ticket error:', error);
-            ToastMessage.Custom('error', 'Failed to create ticket. Please try again.')
+            ToastMessage.Custom('error', 'Failed to create ticket. Please try again.');
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <KeyboardAvoidingView
@@ -323,8 +382,13 @@ const CreateTicketScreen = ({ navigation }: any) => {
                             ))}
                         </View>
                     </View>
+                    <View style={styles.inputWrapper}>
+                        <Text style={styles.label}>
+                            Attachments <Text style={styles.required}>*</Text>
+                        </Text>
+                        <CustomDocumentPicker onChange={(selectedFiles) => setFiles(selectedFiles)} clear={clearDocs} />
+                    </View>
 
-                    {/* Assign To */}
                     <View style={styles.inputWrapper}>
                         <Text style={styles.label}>Assign To (Optional)</Text>
                         <View style={styles.inputContainer}>

@@ -10,9 +10,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { doc, getDoc, updateDoc, arrayUnion, Timestamp, getFirestore } from 'firebase/firestore';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {
   setCurrentTicket,
   setLoading,
@@ -29,6 +30,7 @@ import {
 } from '../../store/slice/ticketDetailSlice';
 import { firestore } from '../../services/firebase';
 import { ToastMessage } from '../../constants/TostMessages';
+import FileAttachment from '../../components/common/FileAttachment';
 
 
 const TicketDetailScreen: React.FC = (props: any) => {
@@ -233,7 +235,16 @@ const TicketDetailScreen: React.FC = (props: any) => {
       </View>
     );
   }
-
+  const isImage = (file: any) => {
+    const mime = file.type?.toLowerCase() || '';
+    const name = file.name?.toLowerCase() || '';
+    return (
+      mime.startsWith('image/') ||
+      name.endsWith('.png') ||
+      name.endsWith('.jpg') ||
+      name.endsWith('.jpeg')
+    );
+  };
   if (!currentTicket) return null;
 
   return (
@@ -243,10 +254,12 @@ const TicketDetailScreen: React.FC = (props: any) => {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <ScrollView style={styles.scrollView} ref={scrollViewRef}>
-        {/* Ticket Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <Text style={styles.ticketId}>#{currentTicket.id.slice(0, 8)}</Text>
+            <TouchableOpacity onPress={() => props.navigation.goBack()}>
+              <Ionicons name="arrow-back" size={24} color="#000" />
+            </TouchableOpacity>
+    
             <View style={styles.badges}>
               <View style={[styles.badge, { backgroundColor: getStatusColor(currentTicket.status) }]}>
                 <Text style={styles.badgeText}>{currentTicket.status.toUpperCase()}</Text>
@@ -256,19 +269,18 @@ const TicketDetailScreen: React.FC = (props: any) => {
               </View>
             </View>
           </View>
+          <Text style={styles.ticketId}>#{currentTicket.id.slice(0, 8)}</Text>
           <Text style={styles.title}>{currentTicket.title}</Text>
           <Text style={styles.dateText}>
             Created: {formatDate(currentTicket.createdDate)} • Updated: {formatDate(currentTicket.updatedDate)}
           </Text>
         </View>
 
-        {/* Description */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Description</Text>
           <Text style={styles.description}>{currentTicket.description}</Text>
         </View>
 
-        {/* Contact Information */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Contact Information</Text>
           <View style={styles.contactInfo}>
@@ -330,8 +342,42 @@ const TicketDetailScreen: React.FC = (props: any) => {
             ))}
           </View>
         </View>
+        {currentTicket.attachments?.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Attachments</Text>
+            <View style={styles.attachmentContainer}>
+              {currentTicket.attachments.map((file) => (
+                <FileAttachment key={file.id} file={file} />
+              ))}
 
-        {/* Conversation History */}
+              {/* {currentTicket.attachments.map((file) => (
+                <TouchableOpacity
+                  key={file.id}
+                  style={styles.attachmentBox}
+                  onPress={() => {
+                    Alert.alert('Attachment', file.name);
+                  }}
+                >
+                  {isImage(file) ? (
+                    <Image
+                      source={{ uri: file.url }}
+                      style={styles.attachmentImage}
+                      resizeMode="cover"
+                    />) : (
+                    <View style={styles.docIconBox}>
+                      <Ionicons name="document-text" size={32} color="#555" />
+                      <Text style={styles.fileName} numberOfLines={1}>
+                        {file.name || 'File'}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))} */}
+            </View>
+          </View>
+        )}
+
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Conversation History</Text>
           {currentTicket.conversation.length === 0 ? (
@@ -467,7 +513,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#FFD700',
     padding: 20,
-    paddingTop: 40,
+    paddingTop: 20,
   },
   headerTop: {
     flexDirection: 'row',
@@ -561,6 +607,47 @@ const styles = StyleSheet.create({
   statusButtonTextActive: {
     color: '#000',
   },
+  attachmentContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  attachmentBox: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  attachmentImage: {
+    width: 80,
+    height: 80,
+  },
+  docIconBox: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
+    padding: 5,
+  },
+  fileName: {
+    fontSize: 8,
+    color: '#333',
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  attachmentName: {
+    position: 'absolute',
+    bottom: 0,
+    fontSize: 10,
+    color: '#000',
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    width: '100%',
+    textAlign: 'center',
+  },
+
   noConversation: {
     fontSize: 15,
     color: '#999',
